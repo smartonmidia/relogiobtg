@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Horário de Brasília — HH:MM:SS</title>
+    <style>
+         :root {
+            --bg: url('https://www.bertioga.sp.gov.br/wp/wp-content/uploads/2018/07/Forte-Sao-Joao_Diego-Bachiega.jpg');
+            --overlay: rgba(0, 0, 0, .55);
+            --white: #fff;
+            --muted: #cfd8e3;
+            --radius: 12px;
+            --font: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        html,
+        body {
+            height: 100%;
+        }
+        
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 28px;
+            font-family: var(--font);
+            background-image: var(--bg);
+            background-size: cover;
+            background-position: center;
+            color: var(--white);
+            position: relative;
+        }
+        
+        .overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--overlay);
+            z-index: 0;
+        }
+        
+        .wrap {
+            position: relative;
+            z-index: 2;
+            width: min(800px, 96vw);
+            text-align: center;
+            padding: 24px;
+            border-radius: var(--radius);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, .08);
+        }
+        
+        h1 {
+            font-size: clamp(22px, 2.2vw, 28px);
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: var(--muted);
+            font-size: clamp(14px, 1.2vw, 14px);
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            height: min(120px, 16vh);
+            border-radius: 10px;
+            background: linear-gradient(145deg, #0d0d0d, #1a1a1a 40%, #111 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--white);
+            font-weight: 800;
+            font-size: clamp(30px, 8vw, 64px);
+            letter-spacing: 10px;
+            box-shadow: inset 0 -2px 4px rgba(255, 255, 255, .05);
+        }
+        
+        .date {
+            margin-top: 16px;
+            color: var(--white);
+            font-size: clamp(14px, 1.4vw, 18px);
+        }
+        
+        .tz {
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="overlay"></div>
+
+    <main class="wrap">
+        <h1>Horário de Brasília</h1>
+        <div class="subtitle">Relógio em tempo real — fuso: <strong>America/Sao_Paulo</strong></div>
+
+        <div class="card" id="clock">00:00:00</div>
+
+        <div class="date" id="date">Carregando data...</div>
+        <div class="tz">Horário mostrado em: <strong>America/Sao_Paulo (Horário de Brasília)</strong></div>
+    </main>
+
+    <script>
+        const TIMEZONE = 'America/Sao_Paulo';
+
+        function partsFor(d = new Date()) {
+            const tf = new Intl.DateTimeFormat('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false,
+                timeZone: TIMEZONE
+            });
+            const parts = tf.formatToParts(d).reduce((acc, it) => {
+                if (it.type) acc[it.type] = it.value;
+                return acc;
+            }, {});
+            const df = new Intl.DateTimeFormat('pt-BR', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric',
+                timeZone: TIMEZONE
+            });
+            const dp = df.formatToParts(d).reduce((acc, it) => {
+                if (it.type) acc[it.type] = it.value;
+                return acc;
+            }, {});
+            return {
+                hour: parts.hour || ' 00 ',
+                minute: parts.minute || ' 00 ',
+                second: parts.second || ' 00 ',
+                weekday: dp.weekday || '',
+                day: dp.day || '',
+                month: dp.month || '',
+                year: dp.year || ''
+            };
+        }
+
+        function updateClock() {
+            const p = partsFor(new Date());
+            document.getElementById('clock').textContent = `${p.hour}:${p.minute}:${p.second}`;
+
+            let wd = p.weekday;
+            if (wd) wd = wd.charAt(0).toUpperCase() + wd.slice(1);
+            document.getElementById('date').textContent = `${wd}, ${p.day} de ${p.month} de ${p.year}`;
+        }
+
+        function startClock() {
+            updateClock();
+            const now = new Date();
+            const ms = 1000 - now.getMilliseconds();
+            setTimeout(() => {
+                updateClock();
+                setInterval(updateClock, 1000);
+            }, ms);
+        }
+
+        startClock();
+    </script>
+</body>
+
+</html>
